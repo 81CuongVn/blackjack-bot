@@ -29,21 +29,30 @@ class Settings(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def minimum_bet_blackjack(self, ctx, new_bet: int):
         guild_id = ctx.guild.id
-        database.guilds.update_one({'guild_id': guild_id}, {'$set': {'minimum_bet_blackjack': new_bet}})
+        if new_bet < 1:
+            await ctx.send('`New bet must be positive!`')
+        else:
+            database.guilds.update_one({'guild_id': guild_id}, {'$set': {'minimum_bet_blackjack': new_bet}})
 
     # .settings minimum_bet_coinflip <new_minimum_bet: int> - set new minimum bet to coinflip
     @settings.command()
     @commands.has_permissions(administrator=True)
     async def minimum_bet_coinflip(self, ctx, new_bet: int):
         guild_id = ctx.guild.id
-        database.guilds.update_one({'guild_id': guild_id}, {'$set': {'minimum_bet_coinflip': new_bet}})
+        if new_bet < 1:
+            await ctx.send('`New bet must be positive!`')
+        else:
+            database.guilds.update_one({'guild_id': guild_id}, {'$set': {'minimum_bet_coinflip': new_bet}})
 
     # .settings daily_bonus <new_daily_bonus: int> - set new daily bonus
     @settings.command()
     @commands.has_permissions(administrator=True)
     async def daily_bonus(self, ctx, new_daily_bonus: int):
         guild_id = ctx.guild.id
-        database.guilds.update_one({'guild_id': guild_id}, {'$set': {'daily_bonus': new_daily_bonus}})
+        if new_daily_bonus < 1:
+            await ctx.send('`New daily bonus must be positive!`')
+        else:
+            database.guilds.update_one({'guild_id': guild_id}, {'$set': {'daily_bonus': new_daily_bonus}})
 
     # error handling for minimum_bet_blackjack
     @minimum_bet_blackjack.error

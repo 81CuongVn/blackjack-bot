@@ -81,7 +81,9 @@ async def top(ctx):
 
     users = database.users.find({'guild_id': guild_id}).sort('balance', pymongo.DESCENDING).limit(5)
     for idx, user in enumerate(users, start=1):
-        top_string += f'{idx}. {ctx.guild.get_member(user.get("user_id")).display_name} - balance: {user.get("balance")} coins \n'
+        name = ctx.guild.get_member(user.get("user_id")).display_name
+        name_string = name.center(32, ' ')
+        top_string += f'{idx}. {name_string} - balance: {user.get("balance")} coins \n'
 
     top_string = "```" + top_string + "```"
     await ctx.send(top_string)
