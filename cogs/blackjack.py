@@ -27,6 +27,7 @@ class BlackJack(commands.Cog):
         guild_id = ctx.guild.id
         player_bal = user_services.get_user_balance(player_id, guild_id)
         minimum_bet = database.guilds.find_one({'guild_id': guild_id}).get('minimum_bet_blackjack')
+        name = ctx.guild.get_member(player_id).display_name
 
         # Check if player's blackjack game is active
         if player_id in self.blackjack_games:
@@ -36,7 +37,7 @@ class BlackJack(commands.Cog):
         elif player_bal < bet:
             await ctx.send('`You have insufficient funds!`')
         else:
-            current_game = BlackJackGame(bet, ctx.author.name, player_id, [], [], self.cards_pack, guild_id)
+            current_game = BlackJackGame(bet, name, player_id, [], [], self.cards_pack, guild_id)
             self.blackjack_games[player_id] = current_game
             if current_game.status == 'finished':
                 del self.blackjack_games[player_id]
