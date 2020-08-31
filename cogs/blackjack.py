@@ -1,6 +1,6 @@
 from discord.ext import commands
 
-from config import minimum_bet
+from config import database
 from helpers import user_services
 from helpers.blackjack_game import BlackJackGame
 from helpers.create_cards_pack import cards_pack
@@ -24,7 +24,9 @@ class BlackJack(commands.Cog):
     @commands.command(name='blackjack', aliases=['bj'])
     async def start_blackjack_game(self, ctx, bet: int):
         player_id = ctx.author.id
-        player_bal = user_services.get_user_balance(player_id)
+        guild_id = ctx.guild.id
+        player_bal = user_services.get_user_balance(player_id, guild_id)
+        minimum_bet = database.guilds.find_one({'guild_id': guild_id}).get('minimum_bet_blackjack')
 
         # Check if player's blackjack game is active
         if player_id in self.blackjack_games:
@@ -34,7 +36,7 @@ class BlackJack(commands.Cog):
         elif player_bal < bet:
             await ctx.send('`You have insufficient funds!`')
         else:
-            current_game = BlackJackGame(bet, ctx.author.name, player_id, [], [], self.cards_pack)
+            current_game = BlackJackGame(bet, ctx.author.name, player_id, [], [], self.cards_pack, guild_id)
             self.blackjack_games[player_id] = current_game
             if current_game.status == 'finished':
                 del self.blackjack_games[player_id]
@@ -67,7 +69,8 @@ class BlackJack(commands.Cog):
     @commands.command(name='double')
     async def double_in_blackjack_game(self, ctx):
         player_id = ctx.author.id
-        player_bal = user_services.get_user_balance(player_id)
+        guild_id = ctx.guild.id
+        player_bal = user_services.get_user_balance(player_id, guild_id)
 
         # Check if player's blackjack game is active
         if ctx.author.id in self.blackjack_games:

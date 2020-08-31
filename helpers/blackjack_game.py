@@ -8,13 +8,14 @@ from config import database
 
 class BlackJackGame:
     def __init__(self, bet: int, player_name: str, player_id: int, player_cards: list, dealer_cards: list,
-                 game_pack: list):
+                 game_pack: list, guild_id: int):
         # Decrease player balance with his bet
-        database.users.update_one({'user_id': player_id}, {'$inc': {'balance': -bet}})
+        database.users.update_one({'user_id': player_id, 'guild_id': guild_id}, {'$inc': {'balance': -bet}})
 
         # Initial settings for a blackjack game
         # Player's bet
         self.bet = bet
+        self.guild_id = guild_id
 
         # Player info
         self.player_name = player_name
@@ -105,7 +106,7 @@ class BlackJackGame:
     # Create the representation of blackjack game in a embed
     def embed(self):
         embed = discord.Embed(title=self.title,
-                              description='`!hit | !stand | !double | !surrender`')
+                              description='`.hit | .stand | .double | .surrender`')
         embed.add_field(name='**You**', value=self.player_info(), inline=True)
         embed.add_field(name='**Dealer**', value=self.dealer_info(), inline=True)
         embed.set_footer(text='Game mode: Blackjack')
@@ -163,7 +164,7 @@ class BlackJackGame:
 
     # Action of double in blackjack
     def double(self):
-        database.users.update_one({'user_id': self.player_id}, {'$inc': {'balance': -self.bet}})
+        database.users.update_one({'user_id': self.player_id, 'guild_id': self.guild_id}, {'$inc': {'balance': -self.bet}})
         self.bet *= 2
         card = self.game_pack.pop()
         self.player_cards.append(card)
@@ -183,7 +184,7 @@ class BlackJackGame:
     # When player have blackjack
     def blackjack_event_player(self):
         # Increase player balance with bet * 2.5 if he hit blackjack
-        database.users.update_one({'user_id': self.player_id}, {'$inc': {'balance': int(self.bet * 2.5)}})
+        database.users.update_one({'user_id': self.player_id, 'guild_id': self.guild_id}, {'$inc': {'balance': int(self.bet * 2.5)}})
 
         # Change title and end the game
         self.title = f"Blackjack - **{self.player_name}** won {int(self.bet * 1.5)} coins"
@@ -193,7 +194,7 @@ class BlackJackGame:
     # Classic win in blackjack
     def win_event(self):
         # Increase player balance with bet * 2 if he win
-        database.users.update_one({'user_id': self.player_id}, {'$inc': {'balance': int(self.bet * 2)}})
+        database.users.update_one({'user_id': self.player_id, 'guild_id': self.guild_id}, {'$inc': {'balance': int(self.bet * 2)}})
 
         # Change title and end the game
         self.title = f"Win - **{self.player_name}** won {self.bet} coins"
@@ -211,7 +212,7 @@ class BlackJackGame:
     # Draw in blackjack
     def draw_event(self):
         # Refund player's coins if he draw
-        database.users.update_one({'user_id': self.player_id}, {'$inc': {'balance': int(self.bet)}})
+        database.users.update_one({'user_id': self.player_id, 'guild_id': self.guild_id}, {'$inc': {'balance': int(self.bet)}})
 
         # Change title and end the game
         self.title = f"Draw - **{self.player_name}** won 0 coins"
