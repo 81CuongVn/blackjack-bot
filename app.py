@@ -96,6 +96,10 @@ async def daily_redeem(ctx):
 
     daily_bonus = database.guilds.find_one({'guild_id': guild_id}).get('daily_bonus')
     user = database.users.find_one({'user_id': user_id, 'guild_id': guild_id})
+
+    if not user:
+        database.users.insert_one({'user_id': user_id, 'balance': 0, 'guild_id': guild_id})
+
     next_daily = user.get('next_daily')
 
     if not next_daily or next_daily < current_time:
