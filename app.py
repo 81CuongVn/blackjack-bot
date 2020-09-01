@@ -102,7 +102,11 @@ async def daily_redeem(ctx):
     if not user:
         database.users.insert_one({'user_id': user_id, 'balance': 0, 'guild_id': guild_id})
 
-    next_daily = user.get('next_daily')
+    # if user doesn't exist user.get will throw AttributeError
+    try:
+        next_daily = user.get('next_daily')
+    except AttributeError:
+        next_daily = None
 
     if not next_daily or next_daily < current_time:
         tomorrow_date = datetime.date.today() + datetime.timedelta(days=1)

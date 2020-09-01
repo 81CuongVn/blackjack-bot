@@ -29,8 +29,11 @@ class BlackJack(commands.Cog):
         minimum_bet = database.guilds.find_one({'guild_id': guild_id}).get('minimum_bet_blackjack')
         name = ctx.guild.get_member(player_id).display_name
 
+        if self.blackjack_games.get(guild_id) is None:
+            self.blackjack_games[guild_id] = {}
+
         # Check if player's blackjack game is active
-        if player_id in self.blackjack_games:
+        if player_id in self.blackjack_games[guild_id]:
             await ctx.send('`You are already in a game!`')
         elif bet < minimum_bet:
             await ctx.send(f'`The minimum bet is {minimum_bet} coins!`')
@@ -38,19 +41,23 @@ class BlackJack(commands.Cog):
             await ctx.send('`You have insufficient funds!`')
         else:
             current_game = BlackJackGame(bet, name, player_id, [], [], self.cards_pack, guild_id)
-            self.blackjack_games[player_id] = current_game
+            self.blackjack_games[guild_id][player_id] = current_game
             if current_game.status == 'finished':
-                del self.blackjack_games[player_id]
+                del self.blackjack_games[guild_id][player_id]
             await ctx.send(embed=current_game.embed())
 
     @commands.command(name='hit')
     # Check if player's blackjack game is active
     async def hit_in_blackjack_game(self, ctx):
-        if ctx.author.id in self.blackjack_games:
-            current_game = self.blackjack_games.get(ctx.author.id)
+        guild_id = ctx.guild.id
+        if self.blackjack_games.get(guild_id) is None:
+            self.blackjack_games[guild_id] = {}
+
+        if ctx.author.id in self.blackjack_games[guild_id]:
+            current_game = self.blackjack_games[guild_id].get(ctx.author.id)
             current_game.hit_a_card()
             if current_game.status == 'finished':
-                del self.blackjack_games[ctx.author.id]
+                del self.blackjack_games[guild_id][ctx.author.id]
             await ctx.send(embed=current_game.embed())
         else:
             await ctx.send('`You must be in a blackjack game!`')
@@ -58,11 +65,15 @@ class BlackJack(commands.Cog):
     @commands.command(name='stand')
     # Check if player's blackjack game is active
     async def stand_in_blackjack_game(self, ctx):
-        if ctx.author.id in self.blackjack_games:
-            current_game = self.blackjack_games.get(ctx.author.id)
+        guild_id = ctx.guild.id
+        if self.blackjack_games.get(guild_id) is None:
+            self.blackjack_games[guild_id] = {}
+
+        if ctx.author.id in self.blackjack_games[guild_id]:
+            current_game = self.blackjack_games[guild_id].get(ctx.author.id)
             current_game.stand()
             if current_game.status == 'finished':
-                del self.blackjack_games[ctx.author.id]
+                del self.blackjack_games[guild_id][ctx.author.id]
             await ctx.send(embed=current_game.embed())
         else:
             await ctx.send('`You must be in a blackjack game!`')
@@ -72,10 +83,12 @@ class BlackJack(commands.Cog):
         player_id = ctx.author.id
         guild_id = ctx.guild.id
         player_bal = user_services.get_user_balance(player_id, guild_id)
+        if self.blackjack_games.get(guild_id) is None:
+            self.blackjack_games[guild_id] = {}
 
         # Check if player's blackjack game is active
-        if ctx.author.id in self.blackjack_games:
-            current_game = self.blackjack_games.get(ctx.author.id)
+        if ctx.author.id in self.blackjack_games[guild_id]:
+            current_game = self.blackjack_games[guild_id].get(ctx.author.id)
             # Check if player have more than 2 cards
             if len(current_game.player_cards) > 2:
                 await ctx.send('`You can double only in the first round!`')
@@ -85,19 +98,23 @@ class BlackJack(commands.Cog):
             else:
                 current_game.double()
                 if current_game.status == 'finished':
-                    del self.blackjack_games[ctx.author.id]
+                    del self.blackjack_games[guild_id][ctx.author.id]
                 await ctx.send(embed=current_game.embed())
         else:
             await ctx.send('`You must be in a blackjack game!`')
 
     @commands.command(name='surrender')
     async def surrender_in_blackjack_game(self, ctx):
+        guild_id = ctx.guild.id
+        if self.blackjack_games.get(guild_id) is None:
+            self.blackjack_games[guild_id] = {}
+
         # Check if player's blackjack game is active
-        if ctx.author.id in self.blackjack_games:
-            current_game = self.blackjack_games.get(ctx.author.id)
+        if ctx.author.id in self.blackjack_games[guild_id]:
+            current_game = self.blackjack_games[guild_id].get(ctx.author.id)
             current_game.lose_event()
             if current_game.status == 'finished':
-                del self.blackjack_games[ctx.author.id]
+                del self.blackjack_games[guild_id][ctx.author.id]
             await ctx.send(embed=current_game.embed())
         else:
             await ctx.send('`You must be in a blackjack game!`')
