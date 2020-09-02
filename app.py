@@ -1,3 +1,4 @@
+import discord
 import pymongo
 import datetime
 
@@ -59,18 +60,21 @@ async def balance(ctx):
 # .balance add <user_id> <amount>
 @balance.command()
 @commands.has_permissions(administrator=True)
-async def add(ctx, user_id: int, amount: int):
-    user = database.users.find_one({'user_id': user_id})
+async def add(ctx, member: discord.Member, amount: int):
     guild_id = ctx.guild.id
+    user = database.users.find_one({'user_id': member.id, 'guild_id': guild_id})
 
-    if not user:
-        await ctx.send("`User id it's not valid!`")
-    elif not user.get('balance'):
-        database.users.update_one({'user_id': user_id, 'guild_id': guild_id}, {'$set': {'balance': amount}})
+    if amount < 1:
+        await ctx.send("`Amount value must be positive!`")
     else:
-        database.users.update_one({'user_id': user_id, 'guild_id': guild_id}, {'$inc': {'balance': amount}})
+        if not user:
+            database.users.insert_one({'user_id': member.id, 'balance': amount, 'guild_id': guild_id})
+        elif not user.get('balance'):
+            database.users.update_one({'user_id': member.id, 'guild_id': guild_id}, {'$set': {'balance': amount}})
+        else:
+            database.users.update_one({'user_id': member.id, 'guild_id': guild_id}, {'$inc': {'balance': amount}})
 
-    print(f'Balance of user with id {user_id} has been increase with {amount} coins')
+        print(f'Balance of user with id {member.id} has been increase with {amount} coins')
 
 
 # Shows top 5 balance on the server
@@ -126,10 +130,10 @@ async def daily_redeem(ctx):
 # error handling for .balance add <user_id> <amount>
 @add.error
 async def add_error(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send("`Command must look like .balance add <user_id> <amount>`")
-    elif isinstance(error, commands.UserInputError):
-        await ctx.send("`User id and amount must be both integers!`")
+    if isinstance(error, commands.BadArgument):
+        await ctx.send('`User is invalid or amount must be a positive integer!`')
+    elif isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send("`Command must look like .balance add <user> <amount>`")
 
 
 bot.load_extension('cogs.settings')
