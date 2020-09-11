@@ -81,16 +81,17 @@ async def add(ctx, member: discord.Member, amount: int):
 @bot.command(name='top', help='Shows top 5 balances on the server')
 async def top(ctx):
     guild_id = ctx.guild.id
-    top_string = ""
+    embed_description = ""
 
     users = database.users.find({'guild_id': guild_id}).sort('balance', pymongo.DESCENDING).limit(5)
     for idx, user in enumerate(users, start=1):
         name = ctx.guild.get_member(user.get("user_id")).display_name
-        name_string = name.center(32, ' ')
-        top_string += f'{idx}. {name_string} - balance: {user.get("balance")} coins \n'
+        embed_description += f'{idx}. {name} - balance: {str(user.get("balance"))} coins \n'
 
-    top_string = "```" + top_string + "```"
-    await ctx.send(top_string)
+    top_embed = discord.Embed(title=f'Top balance on server - {ctx.guild.name}', description=embed_description,
+                              color=discord.Color(15844367))
+
+    await ctx.send(embed=top_embed)
 
 
 # .daily for receive your daily coins
