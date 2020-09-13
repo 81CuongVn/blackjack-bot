@@ -86,16 +86,16 @@ class Versus(commands.Cog):
                 raise InsufficientFunds
             elif player_2_bal < bet:
                 await ctx.send('`Enemy has insufficient funds!`')
+            else:
+                message = await ctx.send(f"{player_2.mention} do you want to do a coinflip with {ctx.author.mention} for {bet} coins?")
+                await message.add_reaction("✅")
+                await message.add_reaction("❎")
+                self.versus_1_v_1[guild_id][message.id] = [ctx.author, player_2, bet]
 
-            message = await ctx.send(f"{player_2.mention} do you want to do a coinflip with {ctx.author.mention} for {bet} coins?")
-            await message.add_reaction("✅")
-            await message.add_reaction("❎")
-            self.versus_1_v_1[guild_id][message.id] = [ctx.author, player_2, bet]
-
-            await asyncio.sleep(60)
-            await message.delete()
-            if self.versus_1_v_1[guild_id].get(message.id):
-                del message.id
+                await asyncio.sleep(60)
+                await message.delete()
+                if self.versus_1_v_1[guild_id].get(message.id):
+                    del message.id
         else:
             await ctx.send('`Enemy must be another user!`')
 
