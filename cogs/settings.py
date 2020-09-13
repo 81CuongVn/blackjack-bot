@@ -60,7 +60,7 @@ class Settings(commands.Cog):
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send("`Command must look like .settings minimum_bet_blackjack <new_bet>`")
         elif isinstance(error, commands.UserInputError):
-            await ctx.send("`New bet must be a integer!`")
+            await ctx.send("`New bet must be an integer!`")
 
     # error handling for minimum_bet_coinflip
     @minimum_bet_coinflip.error
@@ -68,7 +68,7 @@ class Settings(commands.Cog):
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send("`Command must look like .settings minimum_bet_coinflip <new_bet>`")
         elif isinstance(error, commands.UserInputError):
-            await ctx.send("`New bet must be a integer!`")
+            await ctx.send("`New bet must be an integer!`")
 
     # error handling for daily_bonus
     @daily_bonus.error
@@ -76,7 +76,7 @@ class Settings(commands.Cog):
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send("`Command must look like .settings daily_bonus <new_daily_bonus>`")
         elif isinstance(error, commands.UserInputError):
-            await ctx.send("`New daily bonus must be a integer!`")
+            await ctx.send("`New daily bonus must be an integer!`")
 
 
 def setup(bot):

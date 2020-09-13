@@ -9,7 +9,7 @@ from helpers.create_cards_pack import cards_pack
 class BlackJack(commands.Cog):
     """
     To start a blackjack game in your channel use the 'blackjack <bet>' command,
-    and instead of <bet> put the amount you want to gamble (the value must be a integer).
+    and instead of <bet> put the amount you want to gamble (the value must be an integer).
     After you start a blackjack game use 'hit' command to draw a new card, 'stand' command
     to hold your total and end your turn, 'double' command which is like a 'hit' command,
     but the bet is doubled and you only get one more card, or 'surrender' command to give
@@ -22,12 +22,20 @@ class BlackJack(commands.Cog):
         self.blackjack_games = {}
 
     @commands.command(name='blackjack', aliases=['bj'])
-    async def start_blackjack_game(self, ctx, bet: int):
+    async def start_blackjack_game(self, ctx, bet):
         player_id = ctx.author.id
         guild_id = ctx.guild.id
         player_bal = user_services.get_user_balance(player_id, guild_id)
         minimum_bet = database.guilds.find_one({'guild_id': guild_id}).get('minimum_bet_blackjack')
         name = ctx.guild.get_member(player_id).display_name
+
+        if bet == 'all':
+            bet = player_bal
+        else:
+            try:
+                bet = int(bet)
+            except ValueError:
+                raise commands.UserInputError
 
         if self.blackjack_games.get(guild_id) is None:
             self.blackjack_games[guild_id] = {}
@@ -126,7 +134,7 @@ class BlackJack(commands.Cog):
             if error.param.name == 'bet':
                 await ctx.send("`You must enter a bet!`")
         elif isinstance(error, commands.UserInputError):
-            await ctx.send("`Bet must be a integer!`")
+            await ctx.send("`Bet must be an integer or all!`")
 
 
 def setup(bot):
