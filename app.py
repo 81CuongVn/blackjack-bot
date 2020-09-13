@@ -140,5 +140,6 @@ async def add_error(ctx, error):
 bot.load_extension('cogs.settings')
 bot.load_extension('cogs.blackjack')
 bot.load_extension('cogs.coinflip')
+bot.load_extension('cogs.versus')
 
 bot.run(token)
