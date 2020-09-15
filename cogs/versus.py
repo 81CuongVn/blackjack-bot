@@ -1,5 +1,3 @@
-import random
-
 from discord.ext import commands
 import discord
 from helpers import user_services

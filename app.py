@@ -1,8 +1,10 @@
-import discord
-import pymongo
 import datetime
 
+import discord
+import pymongo
 from discord.ext import commands
+from PIL import Image, ImageDraw, ImageFont
+
 from config import database, bot, token
 from helpers import user_services
 
@@ -81,17 +83,36 @@ async def add(ctx, member: discord.Member, amount: int):
 @bot.command(name='top', help='Shows top 5 balances on the server')
 async def top(ctx):
     guild_id = ctx.guild.id
-    embed_description = ""
+    top_users = {}
+    max_len_name = 0
+    max_len_balance = 0
 
     users = database.users.find({'guild_id': guild_id}).sort('balance', pymongo.DESCENDING).limit(5)
-    for idx, user in enumerate(users, start=1):
+    for user in users:
         name = ctx.guild.get_member(user.get("user_id")).display_name
-        embed_description += f'{idx}. {name} - balance: {str(user.get("balance"))} coins \n'
+        user_balance = str(user.get("balance"))
+        top_users[name] = str(user.get("balance"))
+        if len(name) > max_len_name:
+            max_len_name = len(name)
+        if len(user_balance) > max_len_balance:
+            max_len_balance = len(user_balance)
 
-    top_embed = discord.Embed(title=f'Top balance on server - {ctx.guild.name}', description=embed_description,
-                              color=discord.Color(15844367))
+    top_len = 16 + max_len_name + max_len_balance
 
-    await ctx.send(embed=top_embed)
+    top_str = f'Top balance on server - {ctx.guild.name}\n\n'
+    if len(top_str) > top_len:
+        top_len = len(top_str)
+
+    for idx, (name, user_balance) in enumerate(top_users.items(), start=1):
+        top_str += f'{idx}. {name.ljust(max_len_name)} - balance: {user_balance.rjust(max_len_balance)}\n'
+
+    img = Image.new('RGBA', (top_len*35, 350), color=(255, 0, 0, 0))
+    fnt = ImageFont.truetype('assets/consolab.ttf', 60)
+    d = ImageDraw.Draw(img)
+    d.text((10, 10), top_str, font=fnt, fill=(235, 89, 61))
+
+    img.save('top.png')
+    await ctx.send(file=discord.File('top.png'))
 
 
 # .daily for receive your daily coins
