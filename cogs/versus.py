@@ -83,7 +83,7 @@ class Versus(commands.Cog):
             elif player_1_bal < bet:
                 raise InsufficientFunds
             elif player_2_bal < bet:
-                await ctx.send('`Enemy has insufficient funds!`')
+                await ctx.send('`Opponent has insufficient funds!`')
             else:
                 message = await ctx.send(f"{player_2.mention} do you want to do a coinflip with {ctx.author.mention} for {bet} coins?")
                 await message.add_reaction("✅")
@@ -95,7 +95,7 @@ class Versus(commands.Cog):
                 if self.versus_1_v_1[guild_id].get(message.id):
                     del message.id
         else:
-            await ctx.send('`Enemy must be another user!`')
+            await ctx.send('`Opponent must be another user!`')
 
     # Error handling for 1v1
     @versus1v1.error
@@ -105,6 +105,8 @@ class Versus(commands.Cog):
         elif isinstance(error, InsufficientFunds):
             await ctx.send('`You have insufficient funds!`')
         elif isinstance(error, commands.MissingRequiredArgument):
+            if error.param.name == 'player_2':
+                await ctx.send("`You must enter an opponent!`")
             if error.param.name == 'bet':
                 await ctx.send("`You must enter a bet!`")
         elif isinstance(error, commands.UserInputError):
