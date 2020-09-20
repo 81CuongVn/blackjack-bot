@@ -50,7 +50,7 @@ async def top(ctx):
     for idx, (name, user_balance) in enumerate(top_users.items(), start=1):
         top_str += f'{idx}. {name.ljust(max_len_name)} - balance: {user_balance.rjust(max_len_balance)}\n'
 
-    img = Image.new('RGBA', (top_len*35, 350), color=(255, 0, 0, 0))
+    img = Image.new('RGBA', (top_len*35, 365), color=(255, 0, 0, 0))
     fnt = ImageFont.truetype('assets/consolab.ttf', 60)
     d = ImageDraw.Draw(img)
     d.text((10, 10), top_str, font=fnt, fill=(235, 89, 61))

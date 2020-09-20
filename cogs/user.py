@@ -101,6 +101,36 @@ class User(commands.Cog):
             minutes = int(time_difference % 3600 / 60)
             await ctx.send(f'{ctx.author.mention}, your next daily is in {hours}h and {minutes}m!')
 
+    @commands.command(name='transfer', help='Transfer money to another member!')
+    async def transfer(self, ctx, member: discord.Member, amount: int):
+        guild_id = ctx.guild.id
+        user = database.users.find_one({'user_id': ctx.author.id, 'guild_id': guild_id})
+
+        if amount < 1:
+            await ctx.send("`Amount value must be positive!`")
+        elif user.get('balance') < amount:
+            await ctx.send("`You have insufficient funds!`")
+        else:
+            if not user:
+                user_services.create_user(member.id, guild_id)
+                database.users.update_one({'user_id': member.id, 'guild_id': guild_id}, {'$set': {'balance': amount}})
+            elif not user.get('balance'):
+                database.users.update_one({'user_id': member.id, 'guild_id': guild_id}, {'$set': {'balance': amount}})
+            else:
+                database.users.update_one({'user_id': member.id, 'guild_id': guild_id}, {'$inc': {'balance': amount}})
+
+            database.users.update_one({'user_id': ctx.author.id, 'guild_id': guild_id}, {'$inc': {'balance': -amount}})
+
+            await ctx.send(f"{ctx.author.mention} transferred {amount} coins to {member.mention}")
+
+    # error handling for .transfer <user_id> <amount>
+    @transfer.error
+    async def transfer_error(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.send('`User is invalid or amount must be a positive integer!`')
+        elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send("`Command must look like .transfer <user> <amount>`")
+
 
 def setup(bot):
     bot.add_cog(User(bot))
