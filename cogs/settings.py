@@ -20,7 +20,6 @@ class Settings(commands.Cog):
                                   description='`Use the command format .settings <option> to set something.`')
             embed.add_field(name='Blackjack minimum bet', value=f'{guild.get("minimum_bet_blackjack"):,}', inline=True)
             embed.add_field(name='Coinflip minimum bet', value=f"{guild.get('minimum_bet_coinflip'):,}", inline=True)
-            embed.add_field(name='Daily bonus', value=f"{guild.get('daily_bonus'):,}", inline=True)
 
             await ctx.send(embed=embed)
 

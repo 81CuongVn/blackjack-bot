@@ -136,6 +136,42 @@ class BlackJack(commands.Cog):
         elif isinstance(error, commands.UserInputError):
             await ctx.send("`Bet must be an integer or all!`")
 
+    # Verify if player level increased
+    @start_blackjack_game.after_invoke
+    async def start_blackjack_game_after(self, ctx):
+        user_id = ctx.author.id
+        guild_id = ctx.guild.id
+        level_up = user_services.verify_level_up(user_id, guild_id)
+        if level_up:
+            await ctx.send(f'Congrats, {ctx.author.mention} you made it to level {level_up}!')
+
+    # Verify if player level increased
+    @hit_in_blackjack_game.after_invoke
+    async def hit_in_blackjack_game_after(self, ctx):
+        user_id = ctx.author.id
+        guild_id = ctx.guild.id
+        level_up = user_services.verify_level_up(user_id, guild_id)
+        if level_up:
+            await ctx.send(f'Congrats, {ctx.author.mention} you made it to level {level_up}!')
+
+    # Verify if player level increased
+    @stand_in_blackjack_game.after_invoke
+    async def stand_in_blackjack_game_after(self, ctx):
+        user_id = ctx.author.id
+        guild_id = ctx.guild.id
+        level_up = user_services.verify_level_up(user_id, guild_id)
+        if level_up:
+            await ctx.send(f'Congrats, {ctx.author.mention} you made it to level {level_up}!')
+
+    # Verify if player level increased
+    @double_in_blackjack_game.after_invoke
+    async def double_in_blackjack_game_after(self, ctx):
+        user_id = ctx.author.id
+        guild_id = ctx.guild.id
+        level_up = user_services.verify_level_up(user_id, guild_id)
+        if level_up:
+            await ctx.send(f'Congrats, {ctx.author.mention} you made it to level {level_up}!')
+
 
 def setup(bot):
     bot.add_cog(BlackJack(bot))

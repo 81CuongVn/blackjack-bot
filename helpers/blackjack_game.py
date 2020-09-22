@@ -10,7 +10,8 @@ class BlackJackGame:
     def __init__(self, bet: int, player_name: str, player_id: int, player_cards: list, dealer_cards: list,
                  game_pack: list, guild_id: int):
         # Decrease player balance with his bet
-        database.users.update_one({'user_id': player_id, 'guild_id': guild_id}, {'$inc': {'balance': -bet}})
+        database.users.update_one({'user_id': player_id, 'guild_id': guild_id}, {'$inc': {'balance': -bet,
+                                                                                          'experience': 10}})
 
         # Initial settings for a blackjack game
         # Player's bet
@@ -184,7 +185,8 @@ class BlackJackGame:
     # When player have blackjack
     def blackjack_event_player(self):
         # Increase player balance with bet * 2.5 if he hit blackjack
-        database.users.update_one({'user_id': self.player_id, 'guild_id': self.guild_id}, {'$inc': {'balance': int(self.bet * 2.5)}})
+        database.users.update_one({'user_id': self.player_id, 'guild_id': self.guild_id}, {'$inc': {'balance': int(self.bet * 2.5),
+                                                                                                    'experience': 50}})
 
         # Change title and end the game
         self.title = f"Blackjack - **{self.player_name}** won {int(self.bet * 1.5)} coins"
@@ -194,7 +196,8 @@ class BlackJackGame:
     # Classic win in blackjack
     def win_event(self):
         # Increase player balance with bet * 2 if he win
-        database.users.update_one({'user_id': self.player_id, 'guild_id': self.guild_id}, {'$inc': {'balance': int(self.bet * 2)}})
+        database.users.update_one({'user_id': self.player_id, 'guild_id': self.guild_id}, {'$inc': {'balance': int(self.bet * 2),
+                                                                                                    'experience': 25}})
 
         # Change title and end the game
         self.title = f"Win - **{self.player_name}** won {self.bet} coins"

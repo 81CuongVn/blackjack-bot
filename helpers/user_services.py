@@ -23,3 +23,31 @@ def create_user(user_id: int, guild_id: int):
                                'guild_id': guild_id,
                                'level': 0,
                                'experience': 0})
+
+
+def verify_level_up(user_id: int, guild_id: int):
+    user = database.users.find_one({'user_id': user_id, 'guild_id': guild_id})
+    if not user:
+        create_user(user_id, guild_id)
+        user = database.users.find_one({'user_id': user_id, 'guild_id': guild_id})
+
+    try:
+        level = user.get('level') if user.get('level') else 0
+        experience = user.get('experience') if user.get('experience') else 0
+    except AttributeError:
+        level = 0
+        experience = 0
+
+    if level == 0:
+        if experience >= 100:
+            experience -= 100
+            database.users.update_one({'user_id': user_id, 'guild_id': guild_id},
+                                      {'$set': {'level': 1, 'experience': experience}})
+            return 1
+    elif level*169 <= experience:
+        experience -= level*169
+        database.users.update_one({'user_id': user_id, 'guild_id': guild_id},
+                                  {'$set': {'experience': experience}, '$inc': {'level': 1}})
+        return level+1
+
+    return None

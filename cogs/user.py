@@ -4,12 +4,24 @@ from config import database
 from helpers import user_services
 import discord
 import datetime
+from typing import Optional
 
 
 class User(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+
+    # if a user joins a server blackjack-bot creates a entry in database
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if not message.author.bot:
+            guild_id = message.guild.id
+            user_id = message.author.id
+            database.users.update_one({'user_id': user_id, 'guild_id': guild_id}, {'$inc': {'experience': 1}})
+            level_up = user_services.verify_level_up(user_id, guild_id)
+            if level_up:
+                await message.channel.send(f'Congrats, {message.author.mention} you made it to level {level_up}!')
 
     # if a user joins a server blackjack-bot creates a entry in database
     @commands.Cog.listener()
@@ -75,8 +87,14 @@ class User(commands.Cog):
         user_id = ctx.author.id
         current_time = datetime.datetime.now()
 
-        daily_bonus = database.guilds.find_one({'guild_id': guild_id}).get('daily_bonus')
         user = database.users.find_one({'user_id': user_id, 'guild_id': guild_id})
+
+        try:
+            level = user.get('level') if user.get('level') else 0
+        except AttributeError:
+            level = 0
+
+        daily_bonus = level * 100
 
         if not user:
             user_services.create_user(user_id, guild_id)
@@ -87,7 +105,9 @@ class User(commands.Cog):
         except AttributeError:
             next_daily = None
 
-        if not next_daily or next_daily < current_time:
+        if level == 0:
+            await ctx.send('`Your level must be higher to collect the daily reward!`')
+        elif not next_daily or next_daily < current_time:
             tomorrow_date = datetime.date.today() + datetime.timedelta(days=1)
             next_daily = datetime.datetime.combine(tomorrow_date, datetime.time()) - datetime.timedelta(hours=3)
 
@@ -130,6 +150,31 @@ class User(commands.Cog):
             await ctx.send('`User is invalid or amount must be a positive integer!`')
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send("`Command must look like .transfer <user> <amount>`")
+
+    @commands.command(name='stats', help='Shows your stats')
+    async def stats(self, ctx, member: Optional[discord.Member]):
+        if not member:
+            user_id = ctx.author.id
+        else:
+            user_id = member.id
+
+        guild_id = ctx.guild.id
+        name = ctx.guild.get_member(user_id).display_name
+        user = database.users.find_one({'user_id': user_id, 'guild_id': guild_id})
+
+        try:
+            level = user.get('level') if user.get('level') else 0
+            experience = user.get('experience') if user.get('experience') else 0
+        except AttributeError:
+            level = 0
+            experience = 0
+
+        embed = discord.Embed(title=f'Stats for {name}', color=3447003)
+        embed.add_field(name='Level', value=level, inline=True)
+        embed.add_field(name='Balance', value=f"{user.get('balance')}", inline=True)
+        embed.add_field(name='Daily value', value=f"{level*100}", inline=True)
+        embed.add_field(name='Experience', value=f"{experience:,} / {level * 169 if level else 100:,}", inline=True)
+        await ctx.send(embed=embed)
 
 
 def setup(bot):
