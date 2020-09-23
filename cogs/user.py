@@ -8,6 +8,7 @@ from typing import Optional
 
 
 class User(commands.Cog):
+    """ You can make experience by sending messages or play a mini-game! """
 
     def __init__(self, bot):
         self.bot = bot
@@ -162,6 +163,10 @@ class User(commands.Cog):
         name = ctx.guild.get_member(user_id).display_name
         user = database.users.find_one({'user_id': user_id, 'guild_id': guild_id})
 
+        if not user:
+            user_services.create_user(user_id, guild_id)
+            user = database.users.find_one({'user_id': user_id, 'guild_id': guild_id})
+
         try:
             level = user.get('level') if user.get('level') else 0
             experience = user.get('experience') if user.get('experience') else 0
@@ -170,10 +175,13 @@ class User(commands.Cog):
             experience = 0
 
         embed = discord.Embed(title=f'Stats for {name}', color=3447003)
-        embed.add_field(name='Level', value=level, inline=True)
-        embed.add_field(name='Balance', value=f"{user.get('balance')}", inline=True)
-        embed.add_field(name='Daily value', value=f"{level*100}", inline=True)
-        embed.add_field(name='Experience', value=f"{experience:,} / {level * 169 if level else 100:,}", inline=True)
+        embed.add_field(name='Level', value=f'{level:,}', inline=True)
+        embed.add_field(name='Balance', value=f"{user.get('balance'):,}", inline=True)
+        embed.add_field(name='Daily value', value=f"{level * 100:,}", inline=True)
+        if level != 8000:
+            embed.add_field(name='Experience', value=f"{experience:,} / {level * 169 if level else 100:,}", inline=True)
+        else:
+            embed.add_field(name='Experience', value=f"{experience:,}", inline=True)
         await ctx.send(embed=embed)
 
 

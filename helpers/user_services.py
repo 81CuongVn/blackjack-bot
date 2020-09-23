@@ -44,7 +44,7 @@ def verify_level_up(user_id: int, guild_id: int):
             database.users.update_one({'user_id': user_id, 'guild_id': guild_id},
                                       {'$set': {'level': 1, 'experience': experience}})
             return 1
-    elif level*169 <= experience:
+    elif level*169 <= experience and level != 8000:
         experience -= level*169
         database.users.update_one({'user_id': user_id, 'guild_id': guild_id},
                                   {'$set': {'experience': experience}, '$inc': {'level': 1}})

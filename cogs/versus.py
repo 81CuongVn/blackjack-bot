@@ -28,6 +28,10 @@ class Versus(commands.Cog):
             info = self.versus_1_v_1[guild_id][reaction.message.id]
             if user.id == info[1].id:
                 if reaction.emoji == "✅":
+                    # Player 1 object is info[0]
+                    # Player 2 object is info[1]
+                    # Bet is info[2]
+
                     player_2_bal = user_services.get_user_balance(info[1].id, guild_id)
                     player_1_bal = user_services.get_user_balance(info[0].id, guild_id)
                     bet = info[2]
@@ -41,16 +45,30 @@ class Versus(commands.Cog):
                     else:
                         if random.randint(0, 1):
                             database.users.update_one({'user_id': info[0].id, 'guild_id': guild_id},
-                                                      {'$inc': {'balance': bet}})
+                                                      {'$inc': {'balance': bet,
+                                                                'experience': 10}})
                             database.users.update_one({'user_id': info[1].id, 'guild_id': guild_id},
-                                                      {'$inc': {'balance': -bet}})
+                                                      {'$inc': {'balance': -bet,
+                                                                'experience': 10}})
                             await channel.send(f'{info[0].mention} won {bet} coins!')
                         else:
                             database.users.update_one({'user_id': info[0].id, 'guild_id': guild_id},
-                                                      {'$inc': {'balance': -bet}})
+                                                      {'$inc': {'balance': -bet,
+                                                                'experience': 10}})
                             database.users.update_one({'user_id': info[1].id, 'guild_id': guild_id},
-                                                      {'$inc': {'balance': bet}})
+                                                      {'$inc': {'balance': bet,
+                                                                'experience': 10}})
                             await channel.send(f'{info[1].mention} won {bet} coins!')
+
+                    # Verify if player_1 level up
+                    level_up = user_services.verify_level_up(info[0].id, guild_id)
+                    if level_up:
+                        await channel.send(f'Congrats, {info[0].mention} you made it to level {level_up}!')
+
+                    # Verify if player_2 level up
+                    level_up = user_services.verify_level_up(info[1].id, guild_id)
+                    if level_up:
+                        await channel.send(f'Congrats, {info[1].mention} you made it to level {level_up}!')
 
                 elif reaction.emoji == "❎":
                     await reaction.message.delete()

@@ -37,10 +37,12 @@ class CoinFlip(commands.Cog):
             raise InsufficientFunds
         else:
             if random.randint(0, 1):
-                database.users.update_one({'user_id': user_id, 'guild_id': guild_id}, {'$inc': {'balance': bet}})
+                database.users.update_one({'user_id': user_id, 'guild_id': guild_id}, {'$inc': {'balance': bet,
+                                                                                                'experience': 10}})
                 await ctx.send(f'{ctx.author.mention} won {bet} coins!')
             else:
-                database.users.update_one({'user_id': user_id, 'guild_id': guild_id}, {'$inc': {'balance': -bet}})
+                database.users.update_one({'user_id': user_id, 'guild_id': guild_id}, {'$inc': {'balance': -bet,
+                                                                                                'experience': 50}})
                 await ctx.send(f'{ctx.author.mention} lost {bet} coins!')
 
     # Error handling for coinflip
@@ -55,6 +57,15 @@ class CoinFlip(commands.Cog):
                 await ctx.send("`You must enter a bet!`")
         elif isinstance(error, commands.UserInputError):
             await ctx.send("`Bet must be an integer or all!`")
+
+    # Verify if player level increased
+    @coinflip.after_invoke
+    async def coinflip_after(self, ctx):
+        user_id = ctx.author.id
+        guild_id = ctx.guild.id
+        level_up = user_services.verify_level_up(user_id, guild_id)
+        if level_up:
+            await ctx.send(f'Congrats, {ctx.author.mention} you made it to level {level_up}!')
 
 
 def setup(bot):
